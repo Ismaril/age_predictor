@@ -1,0 +1,22 @@
+1. Check supported versions of CuDNN and CUDA for tensorflow
+https://www.tensorflow.org/install/source#gpu
+
+2. Install Microsoft Visual Studio (Is it really necessary???)
+https://visualstudio.microsoft.com/cs/vs/community/
+
+3. Install NVIDIA CUDA Toolkit into default folder
+https://developer.nvidia.com/cuda-downloads?target_os=Windows&target_arch=x86_64&target_version=10&target_type=exe_network
+
+4. Extract NVIDIA cuDNN and copy those 3 folders into Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0
+https://developer.nvidia.com/rdp/cudnn-download
+
+5. add those paths into environmental variables (PATH)
+C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.8\bin
+C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.8\libnvvp
+
+6. pip install Tensorflow
+
+hint:
+all those files I downloaded the most up to date.
+make sure that CUDA and cuDNN are compatible when it comes to theirs version
+https://www.youtube.com/watch?v=hHWkvEcDBO0&t=34s&ab_channel=AladdinPersson
