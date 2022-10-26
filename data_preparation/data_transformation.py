@@ -1,15 +1,15 @@
 import os
 import time
-
 import cv2
 import numpy as np
-from PIL import Image, ImageEnhance
-from PIL import ImageOps
+
+from PIL import Image, ImageEnhance, ImageOps
 
 
 def convert_to_grayscale(path_in, path_out):
     """
     Convert images to grayscale
+
     :param path_in: link to the directory of colored images
     :param path_out: link to the directory for grayscale images
     :return Image:
@@ -25,6 +25,7 @@ def convert_to_grayscale(path_in, path_out):
 def extract_labels(path_in, path_out_labels):
     """
     Extract labels and convert them to ML format
+
     20-27 -> 0,
     28-35 -> 1,
     36-44 -> 2,
@@ -98,23 +99,28 @@ def extract_faces(path_in,
 
     for directory in os.listdir(path_in):
         if directory.startswith("label"):
+
             # locate face and save img for each image in a given dir
             for image in os.listdir(f"{path_in}/{directory}"):
-                img = cv2.imread(f"{path_in}/{directory}/{image}")  # array of [R, G, B] for each pixel
-                gray = cv2.cvtColor(img,
-                                    cv2.COLOR_BGR2GRAY)  # convert to grayscale (better for object detection)
+
+                # array of [R, G, B] for each pixel
+                img = cv2.imread(f"{path_in}/{directory}/{image}")
+
+                # convert to grayscale (better for object detection)
+                gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+                # returns 4 points that are a corners that detected face (rectangle area around face)
                 faces = face_cascade.detectMultiScale(gray,
                                                       scaleFactor=scale_factor,
-
-                                                      # probably returns 4 points that are a corners
-                                                      # that detected face (rectangle area around face)
                                                       minNeighbors=min_neighbours)
+
+                # cutting actual face from original img by setting only relevant pixels?
                 try:
-                    # cutting actual face from original img by setting only relevant pixels?
                     for (x, y, w, h) in faces:
                         roi_color = img[y:y + h, x:x + w]
 
-                    resized = cv2.resize(roi_color, (img_size, img_size))  # resize to n by n pixels
+                    # resize to n by n pixels
+                    resized = cv2.resize(roi_color, (img_size, img_size))
 
                     if not data_augmentation:
                         cv2.imwrite(f"{path_out}/{directory}/{image}", resized)
@@ -200,32 +206,34 @@ def convert_to_array(path_in, path_out, file_name="picture_array"):
 
 #################################################################################
 # OPERATE HERE
+# todo: set only relative paths
+# todo: try to change iteration through directories to global level
 in_raw_imgs = "C:/Users/lazni/PycharmProjects/Age_Predictor/images/raw"
 out_img = "C:/Users/lazni/PycharmProjects/Age_Predictor/images/transformed"
 project_path = "C:/Users/lazni/PycharmProjects/Age_Predictor"
 
 start = time.perf_counter()
 
-# extract_faces(scale_factor=1.01,
-#               min_neighbours=70,
-#               img_size=200,
-#               path_in=in_raw_imgs,
-#               path_out=out_img,
-#               data_augmentation=False)
-# remove_duplicates(path=out_img)
-#
-# extract_faces(scale_factor=1.3,
-#               min_neighbours=8,
-#               img_size=200,
-#               path_in=in_raw_imgs,
-#               path_out=out_img,
-#               data_augmentation=True)
-# remove_duplicates(path=out_img)
-# change_brightness(path_in=out_img,
-#                   prefix1="drk_",
-#                   factor1=0.9,
-#                   prefix2="brt_",
-#                   factor2=1.1)
+extract_faces(scale_factor=1.01,
+              min_neighbours=70,
+              img_size=200,
+              path_in=in_raw_imgs,
+              path_out=out_img,
+              data_augmentation=False)
+remove_duplicates(path=out_img)
+
+extract_faces(scale_factor=1.3,
+              min_neighbours=8,
+              img_size=200,
+              path_in=in_raw_imgs,
+              path_out=out_img,
+              data_augmentation=True)
+remove_duplicates(path=out_img)
+change_brightness(path_in=out_img,
+                  prefix1="drk_",
+                  factor1=0.9,
+                  prefix2="brt_",
+                  factor2=1.1)
 convert_to_grayscale(path_in=out_img,
                      path_out=out_img)
 extract_labels(path_in=out_img,
