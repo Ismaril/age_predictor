@@ -10,9 +10,13 @@ https://developer.nvidia.com/cuda-downloads?target_os=Windows&target_arch=x86_64
 4. Extract NVIDIA cuDNN and copy those 3 folders into Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.0
 https://developer.nvidia.com/rdp/cudnn-download
 
+5. Download Zlib and put the zlibwapi.dll into C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.8\bin
+    It was enough to put there only the one mentioned .dll file
+
 5. add those paths into environmental variables (PATH)
 C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.8\bin
 C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.8\libnvvp
+C:\...\zlibwapi.dll
 
 6. pip install Tensorflow
 
