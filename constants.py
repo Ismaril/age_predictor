@@ -12,4 +12,13 @@ PRODUCTION_DIR = os.path.join(PROJECT_PARENT_DIR, "production")
 SCRAPING_DIR = os.path.join(PROJECT_PARENT_DIR, "scraping")
 SOURCE_DATA_DIR = os.path.join(PROJECT_PARENT_DIR, "source_data")
 
+IMG_SIZE = 200
+
+AGE_RANGES = {0: "20-27",
+              1: "28-35",
+              2: "36-44",
+              3: "45-55",
+              4: "56-65",
+              5: "66<="}
+
 print(IMAGES_TRANSFORMED_DIR)
