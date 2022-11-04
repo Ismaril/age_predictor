@@ -1,8 +1,9 @@
+import os
 import numpy as np
 import pandas as pd
+import constants as c
 import tensorflow as tf
 import matplotlib.pyplot as plt
-import constants as c
 
 from sklearn import utils
 
@@ -24,7 +25,7 @@ class ModelTraining:
 
     def load_data(self, path_features: str, path_labels: str):
         """
-        Load features and labels
+        Load features and labels.
 
         :return: None
         """
@@ -40,7 +41,7 @@ class ModelTraining:
 
     def change_dtypes(self):
         """
-        Change data types of features and labels to float
+        Change data types of features and labels to float.
 
         :return: None
         """
@@ -50,7 +51,8 @@ class ModelTraining:
 
     def one_hot_encode_labels(self):
         """
-        Set number of columns based on number of classes that will contain boolean values.
+        Set number of columns based on number of classes.
+        Columns will contain boolean values.
 
         :return: None
         """
@@ -58,7 +60,7 @@ class ModelTraining:
 
     def shuffle_data(self, random_state=100):
         """
-        Shuffle features and labels
+        Shuffle features and labels.
 
         :return: None
         """
@@ -76,7 +78,7 @@ class ModelTraining:
 
     def visualise_shapes(self):
         """
-        Visualise shapes of features and labels
+        Visualise shapes of features and labels.
 
         :return: None
         """
@@ -108,42 +110,46 @@ class ModelTraining:
         self.y_train, self.y_valid = self.y_train[:split], self.y_train[split:]
 
     def create_model(self,
-                     epochs: int = 400,  # best 300
+                     epochs: int = 400,
                      batch_size: int = 32,
                      neurons_per_layer: list | tuple = (4200, 3000, 2000),
                      dropout: list | tuple = (0.31, 0.31, 0.4),
-                     activation: list | tuple = ("relu", "relu", "relu"),  # best 32
-                     input_shape: int = 128):
+                     activation: list | tuple = ("relu", "relu", "relu"),
+                     input_shape: int = 200):
+
         """
         Define DL model with all its parameters.
 
         :param epochs:
-            number times that the learning algorithm will work through the entire training dataset
+            Number of times that the learning algorithm will work through the entire training dataset.
         :param batch_size:
-            The bigger the batch size, the faster the result, the worse the performance
-            The smaller the batch size, the longer time to train, the better the result
-            Still batch under 32 does not make sense, according to tests,
-                because time hugely increases and results are more or less the same.
-        :param neurons_per_layer: Number of nodes per layer
-        :param dropout: % of nodes to kill
-        :param activation: activation function to let the neuron activate or not
+            Specify batch size to meet memory constraints, performance, convergence...
+        :param neurons_per_layer:
+            Number of nodes per layer.
+        :param dropout:
+            Percentage of nodes to kill.
+        :param activation:
+            Activation function to let the neuron activate or not.
+
         :return: None
         """
 
-        # assert len(neurons_per_layer) == len(dropout) == len(activation), \
-        assert len(neurons_per_layer) == len(activation), \
-            "'neurons_per_layer', 'dropout' and 'activation' must be the same length"
+        assert len(neurons_per_layer) == len(dropout) == len(activation), \
+            "'neurons_per_layer', 'dropout' and 'activation' must be the same length" \
+            "when specified in function parameters"
 
-        # todo: vyzkoušet o chlup větší regularizaci třeba 0.315 nebo 0.32
         self.model = tf.keras.Sequential()
-        self.model.add(tf.keras.layers.Flatten(input_shape=[input_shape, input_shape, 1]))
+        self.model.add(tf.keras.layers.Flatten(input_shape=[input_shape,
+                                                            input_shape,
+                                                            1]))  # had to write down "1" to match the shape
         for neurons_, dropout_, activation_ in zip(neurons_per_layer,
                                                    dropout,
                                                    activation):
             self.model.add(tf.keras.layers.Dense(neurons_, activation=activation_))
-            # self.model.add(tf.keras.layers.Dropout(dropout_))
+            self.model.add(tf.keras.layers.Dropout(dropout_))
         self.model.add(tf.keras.layers.Dense(6, activation="softmax"))
 
+        # CONVOLUTIONAL NETWORK
         # self.model = tf.keras.Sequential()
         # self.model.add(tf.keras.layers.Conv2D(32,
         #                                       3,
@@ -175,11 +181,12 @@ class ModelTraining:
                       final_learning_rate: float = 0.00001):
         """
         :param initial_learning_rate:
-            determines the step size at each iteration while moving toward a minimum of a loss function
-                at the beginning of all epochs
+            Determines the step size at each iteration while moving
+            toward a minimum of a loss function when the curve is still steep.
         :param final_learning_rate:
-            determines the step size at each iteration while moving toward a minimum of a loss function
-                at the end of all epochs
+            Determines the step size at each iteration when the model reaches minimum
+            of loss function.
+
         :return: None
         """
 
@@ -192,11 +199,12 @@ class ModelTraining:
             decay_rate=learning_rate_decay_factor,
             staircase=True)
 
+        # categorical accuracy & loss due to one hot encoded labels
         self.model.compile(loss=tf.keras.losses.CategoricalCrossentropy(),
                            optimizer=tf.keras.optimizers.SGD(learning_rate=lr_schedule),
                            metrics=[tf.keras.metrics.Precision(),
                                     tf.keras.metrics.Recall(),
-                                    tf.keras.metrics.CategoricalAccuracy()])  # categoricalaccuracy due to one hot encoded labels
+                                    tf.keras.metrics.CategoricalAccuracy()])
 
     def fit_model(self,
                   include_validation=True,
@@ -204,12 +212,15 @@ class ModelTraining:
                   patience: int = 5):
         """
 
-        :param include_validation: if true, include also validation set into fitting
+        :param include_validation:
+            If true, include also validation set into fitting.
         :param monitor:
-            select function that will monitor progress of learning. If no progress,
-                learning will stop by early stopping
-        :param patience: limit of epochs without progress before early stopping is called
-        :return:
+            Select function that will monitor progress of learning.
+            If no progress, learning will stop by early stopping.
+        :param patience:
+            Limit of epochs without progress before early stopping is called.
+
+        :return: None
         """
 
         callback = tf.keras.callbacks.EarlyStopping(monitor=monitor, patience=patience)
@@ -222,25 +233,32 @@ class ModelTraining:
                                       callbacks=callback,
                                       validation_data=validation_data)
 
-    def save_model(self, path_name: str):
+    def save_model(self):
         """
-        Save model into specified directory
-        @param path_name: Insert path/name_of_file.H5 to save the model.
-        @return: None
+        Save model into directory.
+
+        :return: None
         """
-        assert path_name.endswith(".H5"), "Save model with extension *.H5"
-        self.model.save("trained_model.H5")
+
+        self.model.save(os.path.join(c.DL_MODELS_DIR, "trained_model.H5"))
 
     def visualise_models_learning(self):
-        # todo: set labels to all evaluation metrcis and change colors of lines
-        # plt.style.use("dark_background")
+        """
+        Visualise model's training history with matplotlib.
+
+        :return: None
+        """
         plt.figure(figsize=(16, 9))
         plt.plot(pd.DataFrame(self.history.history))
         plt.grid(True)
-        # plt.gca().set_ylim(0, 1)  # set vertical range
         plt.show()
 
-    def evaluate_model(self, features, labels):
+    def evaluate_model(self, features: np.nparray, labels: np.nparray):
+        """
+        Evaluate a model on unseen data.
+
+        :return: None
+        """
         result = self.model.evaluate(features, labels)
         print(f"loss: {result[0]}",
               f"precision: {result[1]}",
