@@ -3,23 +3,19 @@ import time
 import constants as c
 import tensorflow as tf
 
-from data_preparation.data_transformation import DataTransformation
 from dl_models.model import ModelTraining
 from scraping.imdb_scraper import get_dataset, IMDBScraper
+from data_preparation.data_transformation import DataTransformation
 
 
-def main(download=False,
-         transform=True,
-         train=True):
-
+def main(download: bool,
+         transform: bool,
+         train: bool):
     if download:
-        # Due to the fact, that data mining was time consuming, fully automated design was not implemented
-        #   here. To download data from another class, past into get_dataset next csv from source data.
-
-        # Note that last_iteration.csv has to be deleted manually, if you want to begin scraping based on new
-        #    source data file
+        # source_data_*.csv have to be inserted here manually.
+        # It did not make much sense to automate it.
         dataset = get_dataset(os.path.join(c.SOURCE_DATA_DIR, "source_data_0.csv"),
-                              "last_iteration.csv")
+                              os.path.join(c.SCRAPING_DIR, "last_iteration.csv"))
         scraper = IMDBScraper(user_data=dataset,
                               user_agents=c.USER_AGENTS,
                               tor_request_html=False,
@@ -85,16 +81,18 @@ def main(download=False,
         model1.shuffle_data(random_state=100)
         model1.scale_features()
         model1.visualise_shapes()
-        model1.split_to_features_and_labels(percentage=0.90)
-        model1.split_to_validation_sets(percentage=0.90)
+        model1.split_to_features_and_labels(percentage=0.80)
+        model1.split_to_validation_sets(percentage=0.80)
         model1.create_model(epochs=400,
                             batch_size=32,
                             neurons_per_layer=(4200, 3000, 2000),
                             dropout=(0.31, 0.31, 0.4),
                             activation=("relu", "relu", "relu"),
                             input_shape=c.IMG_SIZE)
-        model1.compile_model(initial_learning_rate=0.001,
-                             final_learning_rate=0.00001)
+        model1.compile_model(initial_learning_rate=0.01,
+                             final_learning_rate=0.0001)
+        print(model1.y_train)
+        print(model1.class_weights())
         model1.fit_model(include_validation=True,
                          monitor="loss",
                          patience=5)

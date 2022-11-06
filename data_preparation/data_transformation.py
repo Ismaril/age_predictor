@@ -87,7 +87,7 @@ class DataTransformation:
 
         print("Face extraction - done")
 
-    # TODO: this function can be deleted once I locate the bug
+    # TODO: this function can be deleted once I locate the bug in opencv2
     @staticmethod
     def remove_duplicates(path: str):
         """

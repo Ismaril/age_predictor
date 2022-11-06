@@ -1,12 +1,11 @@
 import os
-import cv2
 import numpy as np
 import tkinter as tk
 import constants as c
 import tensorflow as tf
 
-from data_preparation.data_transformation import DataTransformation
 from PIL import Image, ImageTk
+from data_preparation.data_transformation import DataTransformation
 
 
 class GUI(tk.Tk, DataTransformation):
@@ -132,12 +131,20 @@ class GUI(tk.Tk, DataTransformation):
         for widget in self.main_grid.place_slaves():
             widget.destroy()
 
+    @staticmethod
+    def images_present_raw_dir():
+        assert os.listdir(c.PRODUCTION_RAW_DIR), "You did not input any images into raw_images directory."
+
+    @staticmethod
+    def images_present_transformed_dir():
+        assert os.listdir(c.PRODUCTION_TRANSFORMED_DIR), "Images you took were not recognised."
+
     def predictions(self, path_in, image_size):
         """
         Get predictions on images from specified folder.
 
         :param path_in: Folder containing images.
-        :param image_size: Desired size of image in pixels. (height=img_size, width=img_size)
+        :param image_size: Image in pixels. (height=img_size, width=img_size)
         :return: None
         """
         for picture_array, img_name in zip(self.picture_array, os.listdir(path_in)):

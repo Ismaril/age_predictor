@@ -6,6 +6,7 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 
 from sklearn import utils
+from sklearn.utils.class_weight import compute_class_weight
 
 
 class ModelTraining:
@@ -41,13 +42,12 @@ class ModelTraining:
 
     def change_dtypes(self):
         """
-        Change data types of features and labels to float.
+        Change data types to float.
 
         :return: None
         """
 
-        self.features = self.features.astype(float)
-        self.labels = self.labels.astype(float)
+        self.features = self.features.astype(np.float16)
 
     def one_hot_encode_labels(self):
         """
@@ -56,6 +56,7 @@ class ModelTraining:
 
         :return: None
         """
+
         self.labels = tf.keras.utils.to_categorical(self.labels, 6)
 
     def shuffle_data(self, random_state=100):
@@ -75,6 +76,19 @@ class ModelTraining:
         :return: None
         """
         self.features /= 255.0
+
+    def class_weights(self) -> dict:
+        """
+        Compute class weights when you have imbalanced classes
+
+        :return: dict
+        """
+        class_series = np.argmax(self.y_train, axis=1)
+        class_labels = np.unique(class_series)
+        class_weights = compute_class_weight(class_weight='balanced',
+                                             classes=class_labels,
+                                             y=class_series)
+        return dict(zip(class_labels, class_weights))
 
     def visualise_shapes(self):
         """
@@ -116,7 +130,6 @@ class ModelTraining:
                      dropout: list | tuple = (0.31, 0.31, 0.4),
                      activation: list | tuple = ("relu", "relu", "relu"),
                      input_shape: int = 200):
-
         """
         Define DL model with all its parameters.
 
@@ -130,10 +143,12 @@ class ModelTraining:
             Percentage of nodes to kill.
         :param activation:
             Activation function to let the neuron activate or not.
+        :param input_shape: Image in pixels. (height=img_size, width=img_size)
 
         :return: None
         """
 
+        # DENSE NETWORK
         assert len(neurons_per_layer) == len(dropout) == len(activation), \
             "'neurons_per_layer', 'dropout' and 'activation' must be the same length" \
             "when specified in function parameters"
@@ -167,10 +182,10 @@ class ModelTraining:
         #                                       activation="relu"))
         # self.model.add(tf.keras.layers.MaxPool2D(2))
         # self.model.add(tf.keras.layers.Flatten())
-        # self.model.add(tf.keras.layers.Dense(2048, activation="relu"))
-        # self.model.add(tf.keras.layers.Dropout(0.6))
-        # self.model.add(tf.keras.layers.Dense(1024, activation="relu"))
-        # self.model.add(tf.keras.layers.Dropout(0.6))
+        # self.model.add(tf.keras.layers.Dense(64, activation="relu"))
+        # self.model.add(tf.keras.layers.Dropout(0.3))
+        # self.model.add(tf.keras.layers.Dense(32, activation="relu"))
+        # self.model.add(tf.keras.layers.Dropout(0.3))
         # self.model.add(tf.keras.layers.Dense(6, activation="softmax"))
 
         self.batch_size = batch_size
@@ -225,13 +240,13 @@ class ModelTraining:
 
         callback = tf.keras.callbacks.EarlyStopping(monitor=monitor, patience=patience)
         validation_data = (self.X_valid, self.y_valid) if include_validation else None
-        self.model: tf.keras.models.Sequential
         self.history = self.model.fit(self.X_train,
                                       self.y_train,
                                       epochs=self.epochs,
                                       batch_size=self.batch_size,
                                       callbacks=callback,
-                                      validation_data=validation_data)
+                                      validation_data=validation_data,
+                                      class_weight=self.class_weights())
 
     def save_model(self):
         """
@@ -253,7 +268,7 @@ class ModelTraining:
         plt.grid(True)
         plt.show()
 
-    def evaluate_model(self, features: np.nparray, labels: np.nparray):
+    def evaluate_model(self, features: np.array, labels: np.array):
         """
         Evaluate a model on unseen data.
 
