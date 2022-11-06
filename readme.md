@@ -46,4 +46,4 @@ Random - 16% \
 Model - 30% (Recall, Precision, Accuracy) \
 Human - 50%
 
-<img alt="Image" src="github_img.jpg"/>
+![Image](github_img.JPG)
