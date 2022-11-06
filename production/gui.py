@@ -35,10 +35,10 @@ class GUI(tk.Tk, DataTransformation):
 
     @staticmethod
     def __load_model() -> tf.keras.models.Model:
-        return tf.keras.models.load_model(r"best_model.H5")
+        return tf.keras.models.load_model(os.path.join(c.PRODUCTION_DIR, "best_model.H5"))
 
     def __visualise_image(self, image_name):
-        img = ImageTk.PhotoImage(Image.open(f"transformed/{image_name}"))
+        img = ImageTk.PhotoImage(Image.open(os.path.join(c.PRODUCTION_TRANSFORMED_DIR, image_name)))
         label = tk.Label(self.main_grid,
                          image=img)
         label.place(anchor="center",

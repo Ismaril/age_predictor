@@ -1,8 +1,10 @@
 import os
 import time
+import numpy as np
 import constants as c
 import tensorflow as tf
 
+from production.gui import GUI
 from dl_models.model import ModelTraining
 from scraping.imdb_scraper import get_dataset, IMDBScraper
 from data_preparation.data_transformation import DataTransformation
@@ -10,9 +12,20 @@ from data_preparation.data_transformation import DataTransformation
 
 def main(download: bool,
          transform: bool,
-         train: bool):
+         train: bool,
+         gui: bool):
+
+    """
+
+    :param download: Download images one by one based on class dataset that you manually input inside
+    :param transform: Automatically transform raw images into numpy features & labels
+    :param train: Automatically train a model.
+    :param gui: Open GUI.
+
+    :return: None
+    """
     if download:
-        # source_data_*.csv have to be inserted here manually.
+        # source_data_*.csv has to be inserted here manually.
         # It did not make much sense to automate it.
         dataset = get_dataset(os.path.join(c.SOURCE_DATA_DIR, "source_data_0.csv"),
                               os.path.join(c.SCRAPING_DIR, "last_iteration.csv"))
@@ -100,8 +113,33 @@ def main(download: bool,
         model1.visualise_models_learning()
         model1.evaluate_model(model1.X_test, model1.y_test)
 
+    if gui:
+        gui = GUI()
+        gui.images_present_raw_dir()
+        gui.extract_faces(path_in=c.PRODUCTION_RAW_DIR,
+                          path_out=c.PRODUCTION_TRANSFORMED_DIR,
+                          prefix="",
+                          img_size=c.IMG_SIZE,
+                          scale_factor=1.01,
+                          min_neighbours=70)
+        gui.remove_duplicates(path=c.PRODUCTION_TRANSFORMED_DIR)
+        gui.convert_to_grayscale(path_in=c.PRODUCTION_TRANSFORMED_DIR,
+                                 path_out=c.PRODUCTION_TRANSFORMED_DIR)
+        gui.images_present_transformed_dir()
+        gui.extract_labels(c.PRODUCTION_TRANSFORMED_DIR)
+        gui.convert_to_array(c.PRODUCTION_TRANSFORMED_DIR)
+        gui.predictions(path_in=c.PRODUCTION_TRANSFORMED_DIR,
+                        image_size=c.IMG_SIZE)
+
+        print(gui.model.evaluate(np.array(gui.picture_array) / 255,
+                                 tf.keras.utils.to_categorical(gui.labels_prepared, 6)))
+
+        gui.visual_main()
+        gui.mainloop()
+
 
 if __name__ == '__main__':
     main(download=False,
          transform=False,
-         train=True)
+         train=False,
+         gui=False)
