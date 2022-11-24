@@ -34,7 +34,7 @@ The aim of the project was to crete a program to predict a human age.
 - Ages of people might not have 100% reflected the age on the shown photos on IMDB.
 - Not enough data
 - Hardware (RTX 2080S 8GB)
-- Data cleaning of extracted faces by opencv2 was not done
+- Data cleaning of extracted faces was not done
 
 ## Status of the project:
 Functional
